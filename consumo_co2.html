@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Calcolatore CO₂ Digitale</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin-top: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #45a049;
+            }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>🌍 Calcolatore CO₂ Digitale</h2>
+
+        <input type="number" id="streaming" placeholder="Ore di streaming"><br>
+        <input type="number" id="email" placeholder="Email al giorno"><br>
+        <input type="number" id="video" placeholder="Ore videochiamata"><br>
+
+        <button onclick="calcola()">Calcola Impatto</button>
+        <button onclick="scarica()">Scarica Risultati</button>
+
+        <div class="result" id="output"></div>
+
+        <canvas id="grafico"></canvas>
+    </div>
+
+    <script>
+        let chart;
+
+        function calcola() {
+            let streaming = parseFloat(document.getElementById("streaming").value) || 0;
+            let email = parseFloat(document.getElementById("email").value) || 0;
+            let video = parseFloat(document.getElementById("video").value) || 0;
+
+            let co2_stream = streaming * 100;
+            let co2_email = email * 4;
+            let co2_video = video * 150;
+
+            let totale = co2_stream + co2_email + co2_video;
+
+            let km_auto = (totale / 120).toFixed(2);
+            let pasti = (totale / 500).toFixed(2);
+
+            // punteggio eco
+            let punteggio = "";
+            if (totale < 300) punteggio = "🌱 Eco Hero";
+            else if (totale < 700) punteggio = "⚖️ Normale";
+            else punteggio = "⚠️ Alto impatto";
+
+            document.getElementById("output").innerHTML = `
+            🌫️ CO₂ totale: <b>${totale} g</b><br>
+            🚗 ${km_auto} km in auto<br>
+            🍝 ${pasti} pasti<br><br>
+            🎯 Livello: <b>${punteggio}</b>
+        `;
+
+            // Grafico
+            if (chart) chart.destroy();
+
+            chart = new Chart(document.getElementById("grafico"), {
+                type: 'bar',
+                data: {
+                    labels: ["Streaming", "Email", "Videochiamate"],
+                    datasets: [{
+                        label: "CO₂ (g)",
+                        data: [co2_stream, co2_email, co2_video]
+                    }]
+                }
+            });
+        }
+
+        function scarica() {
+            let testo = document.getElementById("output").innerText;
+
+            let blob = new Blob([testo], { type: "text/plain" });
+            let link = document.createElement("a");
+
+            link.href = URL.createObjectURL(blob);
+            link.download = "risultati_CO2.txt";
+            link.click();
+        }
+    </script>
+
+</body>
+</html>
